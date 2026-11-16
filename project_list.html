@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Projects{% endblock %}
+
+{% block content %}
+<div class="section-header">
+    <div>
+        <h2 class="mb-1">Projects</h2>
+        <p class="text-muted mb-0">Track your active work and team progress.</p>
+    </div>
+    <a class="btn btn-primary" href="{% url 'project_create' %}">Create project</a>
+</div>
+
+<div class="row g-4">
+    {% for project in projects %}
+    <div class="col-md-6 col-xl-4">
+        <div class="card project-card p-4">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <h5 class="mb-0">{{ project.name }}</h5>
+                {% if project.is_archived %}
+                    <span class="badge bg-secondary">Archived</span>
+                {% endif %}
+            </div>
+            <p class="text-muted small mb-3">Owner: {{ project.owner.username }}</p>
+            <p>{{ project.description|truncatechars:110|default:'No description provided yet.' }}</p>
+            <div class="d-flex justify-content-between mb-2 small text-muted">
+                <span>{{ project.members.count }} members</span>
+                <span>{{ project.tasks.count }} tasks</span>
+            </div>
+            <a href="{% url 'project_detail' project.pk %}" class="btn btn-outline-primary">Open project</a>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="card p-4">
+            <p class="mb-0 text-muted">You have not joined any projects yet.</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

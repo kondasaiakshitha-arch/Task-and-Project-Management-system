@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}Tasks{% endblock %}
+
+{% block content %}
+<div class="section-header">
+    <div>
+        <h2 class="mb-1">Task list</h2>
+        <p class="text-muted mb-0">Search, filter, and triage work across your projects.</p>
+    </div>
+</div>
+
+<div class="card p-4 mb-4">
+    <form method="get" class="row g-3">
+        <div class="col-md-4">
+            <input type="text" name="q" class="form-control" placeholder="Search tasks..." value="{{ request.GET.q }}">
+        </div>
+        <div class="col-md-2">
+            <select name="priority" class="form-select">
+                <option value="">Priority</option>
+                {% for value,label in task_priorities %}
+                    <option value="{{ value }}" {% if request.GET.priority == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select name="status" class="form-select">
+                <option value="">Status</option>
+                {% for value,label in task_statuses %}
+                    <option value="{{ value }}" {% if request.GET.status == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select name="assignee" class="form-select">
+                <option value="">Assignee</option>
+                {% for member in assignees %}
+                    <option value="{{ member.id }}" {% if request.GET.assignee == member.id|stringformat:'s' %}selected{% endif %}>{{ member.username }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2 d-flex gap-2">
+            <button class="btn btn-primary w-100" type="submit">Filter</button>
+        </div>
+    </form>
+</div>
+
+<div class="card p-4">
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Project</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th>Due date</th>
+                    <th>Assignee</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for task in tasks %}
+                <tr>
+                    <td><a href="{% url 'task_detail' task.pk %}">{{ task.title }}</a></td>
+                    <td>{{ task.project.name }}</td>
+                    <td><span class="badge-priority priority-{{ task.priority }}">{{ task.get_priority_display }}</span></td>
+                    <td><span class="status-pill status-{{ task.status }}">{{ task.get_status_display }}</span></td>
+                    <td>{{ task.due_date|default:'-' }}</td>
+                    <td>{{ task.assignee.username|default:'Unassigned' }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-muted">No tasks match your filters.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

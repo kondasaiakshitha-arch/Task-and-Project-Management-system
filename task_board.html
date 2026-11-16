@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}Task Board{% endblock %}
+
+{% block content %}
+<div class="section-header">
+    <div>
+        <h2 class="mb-1">Kanban board</h2>
+        <p class="text-muted mb-0">Drag tasks between stages to update progress.</p>
+    </div>
+    {% if selected_project %}
+    <a class="btn btn-primary" href="{% url 'task_create' selected_project.pk %}">New task</a>
+    {% endif %}
+</div>
+
+<div class="card p-4 mb-4">
+    <form method="get" class="row g-3">
+        <div class="col-md-4">
+            <select name="project_id" class="form-select" onchange="this.form.submit()">
+                <option value="">All projects</option>
+                {% for project in projects %}
+                    <option value="{{ project.id }}" {% if selected_project and selected_project.id == project.id %}selected{% endif %}>{{ project.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </form>
+</div>
+
+<div class="row g-4">
+    {% for column_key, column_tasks in task_columns.items %}
+    <div class="col-md-4">
+        <div class="task-column" data-column="{{ column_key }}">
+            <h5 class="mb-3">{{ column_key|title|cut:'_' }} <span class="badge bg-secondary">{{ column_tasks|length }}</span></h5>
+            {% for task in column_tasks %}
+                <div class="task-card" draggable="true" data-task-id="{{ task.id }}">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <strong>{{ task.title }}</strong>
+                        <span class="badge-priority priority-{{ task.priority }}">{{ task.get_priority_display }}</span>
+                    </div>
+                    <p class="small text-muted mb-2">{{ task.project.name }}</p>
+                    <div class="d-flex justify-content-between small">
+                        <span>{{ task.assignee.username|default:'Unassigned' }}</span>
+                        <span>{{ task.due_date|default:'-' }}</span>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="text-muted small">No tasks here.</div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+const csrfToken = '{{ csrf_token }}';
+const cards = document.querySelectorAll('.task-card');
+const columns = document.querySelectorAll('.task-column');
+
+cards.forEach(card => {
+    card.addEventListener('dragstart', (event) => {
+        event.dataTransfer.setData('text/plain', card.dataset.taskId);
+    });
+});
+
+columns.forEach(column => {
+    column.addEventListener('dragover', (event) => {
+        event.preventDefault();
+    });
+
+    column.addEventListener('drop', (event) => {
+        event.preventDefault();
+        const taskId = event.dataTransfer.getData('text/plain');
+        const status = column.dataset.column;
+
+        fetch('{% url "update_task_status" %}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': csrfToken },
+            body: `task_id=${taskId}&status=${status}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                alert(data.error || 'Unable to update task');
+                return;
+            }
+            window.location.reload();
+        });
+    });
+});
+</script>
+{% endblock %}

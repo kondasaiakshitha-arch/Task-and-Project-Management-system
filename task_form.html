@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card p-4">
+            <h2 class="mb-3">{{ title }}</h2>
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="btn btn-primary">Save</button>
+                {% if task %}
+                    <a href="{% url 'task_detail' task.pk %}" class="btn btn-outline-secondary ms-2">Cancel</a>
+                {% else %}
+                    <a href="{% url 'project_detail' project.pk %}" class="btn btn-outline-secondary ms-2">Cancel</a>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

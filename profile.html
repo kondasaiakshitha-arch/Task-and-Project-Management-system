@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card p-4">
+            <h2 class="mb-3">Profile</h2>
+            <p><strong>Username:</strong> {{ user.username }}</p>
+            <p><strong>Email:</strong> {{ user.email|default:'Not provided' }}</p>
+            <p><strong>Projects owned:</strong> {{ user.owned_projects.count }}</p>
+            <p><strong>Tasks assigned:</strong> {{ user.assigned_tasks.count }}</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
